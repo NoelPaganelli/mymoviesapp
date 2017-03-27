@@ -1,6 +1,7 @@
 var express = require('express');
 var request = require('request');
 var mongoose= require('mongoose');
+var session = require("express-session");
 mongoose.connect('mongodb://localhost/mymoviesapp' , function(err) {
 
 });
@@ -24,8 +25,6 @@ app.get('/', function (req, res) {
     var body = JSON.parse(body);
     
      MovieModel.find(function (err, movies) {
-        
-        
         res.render('home', { moviesList: body.results, moviesLike:movies});
      })
        
@@ -33,10 +32,26 @@ app.get('/', function (req, res) {
   });
 });
 
+
+var isLog = false;
+
 app.get('/review', function (req, res) {
-  MovieModel.find(function (err, movies) {
-    res.render('review', {moviesList : movies});
-  })
+  if(req.query.email == "noel@lacapsule.academy") {
+     console.log("email OK");
+     if(req.query.motdepasse == "riri") {
+        console.log("email et mot de passe OK");
+        isLog = true;
+    }
+  }
+
+ 
+  if(isLog == true) {
+    MovieModel.find(function (err, movies) {
+      res.render('review', {moviesList : movies});
+    })
+  } else {
+     res.redirect('/login');
+  }
 });
 
 app.get('/contact', function (req, res) {
@@ -50,7 +65,31 @@ app.get('/single', function (req, res) {
   });
 });
 
+app.get('/login', function (req, res) {
+ res.render('loginform');
+});
+
+
+
+/*
+app.get('/checklogin', function (req, res) {
+ 
+ if(req.query.email == "noel@lacapsule.academy") {
+   console.log("email OK");
+   if(req.query.motdepasse == "riri") {
+      console.log("email et mot de passe OK");
+      isLog = true;
+   }
+ }
+ if(isLog == true) {
+    res.redirect('/review');
+ } else {
+    res.render('loginform');
+ }
+});*/
+
 app.get('/like', function (req, res) {
+  
   request("https://api.themoviedb.org/3/movie/"+req.query.id+"?api_key=1ca44169216245030924859d77648835&language=fr-FR", function(error, response, body) {
     var body = JSON.parse(body);
     var movie = new MovieModel ({
